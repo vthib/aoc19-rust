@@ -1,0 +1,7 @@
+[package]
+name = "aoc19-rust-day3"
+version = "0.1.0"
+authors = ["vthib"]
+edition = "2018"
+
+[dependencies]
