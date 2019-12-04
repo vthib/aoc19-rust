@@ -230,11 +230,11 @@ impl Map {
 fn day3a(map: &Map, circuit2: &Vec<Movement>) {
     let min_distance = map.find_min_distance(&circuit2);
 
-    println!("day2a: minimal distance: {}", min_distance.unwrap());
+    println!("day3a: minimal distance: {}", min_distance.unwrap());
 }
 
 fn day3b(map: &Map, circuit2: &Vec<Movement>) {
     let min_steps = map.find_min_steps(&circuit2);
 
-    println!("day2a: minimal steps: {}", min_steps.unwrap());
+    println!("day3b: minimal steps: {}", min_steps.unwrap());
 }
