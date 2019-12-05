@@ -1,5 +1,6 @@
 use std::io;
 use std::io::Read;
+use intcode;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
@@ -10,7 +11,7 @@ fn main() -> Result<()> {
     let mut memory = Vec::new();
 
     for line in input.split(',') {
-        memory.push(line.trim().parse::<usize>()?)
+        memory.push(line.trim().parse::<i32>()?)
     }
 
     day2a(&memory);
@@ -18,49 +19,23 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn run_program(memory: &mut Vec<usize>) {
-    let mut eip = 0;
-
-    loop {
-        let opcode = memory[eip];
-
-        match opcode {
-            1 => {
-                let eipin1 = memory[eip + 1];
-                let eipin2 = memory[eip + 2];
-                let eipout = memory[eip + 3];
-                memory[eipout] = memory[eipin1] + memory[eipin2];
-            }
-            2 => {
-                let eipin1 = memory[eip + 1];
-                let eipin2 = memory[eip + 2];
-                let eipout = memory[eip + 3];
-                memory[eipout] = memory[eipin1] * memory[eipin2];
-            }
-            99 => break,
-            _ => panic!("unknown opcode {}", opcode),
-        }
-        eip += 4;
-    }
-}
-
-fn day2a(state: &Vec<usize>) {
+fn day2a(state: &Vec<i32>) {
     let mut memory = state.clone();
     memory[1] = 12;
     memory[2] = 2;
-    run_program(&mut memory);
+    let res = intcode::run(&memory, &[]);
 
-    println!("day2a: value at pos 0: {}", memory[0]);
+    println!("day2a: value at pos 0: {}", res);
 }
 
-fn day2b(state: &Vec<usize>) {
+fn day2b(state: &Vec<i32>) {
     for noun in 0..100 {
         for verb in 0..100 {
             let mut memory = state.clone();
             memory[1] = noun;
             memory[2] = verb;
-            run_program(&mut memory);
-            if memory[0] == 19690720 {
+            let res = intcode::run(&memory, &[]);
+            if res == 19690720 {
                 println!(
                     "day2b: noun: {}, verb: {}, answer: {}",
                     noun,

@@ -1,8 +1,7 @@
 [package]
-name = "aoc19-rust-day5"
+name = "intcode"
 version = "0.1.0"
 authors = ["vthib"]
 edition = "2018"
 
 [dependencies]
-intcode = { path = "../intcode" }

@@ -5,3 +5,4 @@ authors = ["vthib"]
 edition = "2018"
 
 [dependencies]
+intcode = { path = "../intcode" }
