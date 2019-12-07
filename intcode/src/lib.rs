@@ -1,3 +1,4 @@
+#[derive(Clone)]
 pub struct Intcode {
     pub memory: Vec<i32>,
     eip: usize,
