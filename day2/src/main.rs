@@ -1,6 +1,6 @@
 use std::io;
 use std::io::Read;
-use intcode;
+use intcode::Intcode;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
@@ -23,9 +23,10 @@ fn day2a(state: &Vec<i32>) {
     let mut memory = state.clone();
     memory[1] = 12;
     memory[2] = 2;
-    let res = intcode::run(&memory, &[]);
+    let mut intcode = Intcode::new(&memory);
+    intcode.run(&[]);
 
-    println!("day2a: value at pos 0: {}", res);
+    println!("day2a: value at pos 0: {}", intcode.memory[0]);
 }
 
 fn day2b(state: &Vec<i32>) {
@@ -34,8 +35,9 @@ fn day2b(state: &Vec<i32>) {
             let mut memory = state.clone();
             memory[1] = noun;
             memory[2] = verb;
-            let res = intcode::run(&memory, &[]);
-            if res == 19690720 {
+            let mut intcode = Intcode::new(&memory);
+            intcode.run(&[]);
+            if intcode.memory[0] == 19690720 {
                 println!(
                     "day2b: noun: {}, verb: {}, answer: {}",
                     noun,

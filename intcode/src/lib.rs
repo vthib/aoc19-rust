@@ -1,81 +1,128 @@
-fn get_param_value(memory: &Vec<i32>, pos: usize, instruction: &mut i32) -> i32 {
-    let mode = *instruction % 10;
-    *instruction /= 10;
-
-    match mode {
-        // position mode
-        0 => memory[memory[pos] as usize],
-        // immediate mode
-        1 => memory[pos],
-        _ => panic!("invalid mode {}", mode),
-    }
+pub struct Intcode {
+    pub memory: Vec<i32>,
+    eip: usize,
+    is_done: bool,
 }
 
-fn get_outptr<'a>(memory: &'a mut Vec<i32>, pos: usize, instruction: &mut i32) -> &'a mut i32 {
-    let v = memory[pos];
-    let mode = *instruction % 10;
-    *instruction /= 10;
-
-    match mode {
-        // position mode
-        0 => &mut memory[v as usize],
-        _ => panic!("invalid output mode {}", mode),
-    }
-}
-
-pub fn run(state: &Vec<i32>, inputs: &[i32]) -> i32 {
-    let mut memory = state.clone();
-    let mut eip = 0;
-    let mut input_pos = 0;
-
-    loop {
-        let mut instruction = memory[eip];
-        let opcode = instruction % 100;
-        instruction /= 100;
-
-        match opcode % 100 {
-            1 | 2 => {
-                let in1 = get_param_value(&memory, eip + 1, &mut instruction);
-                let in2 = get_param_value(&memory, eip + 2, &mut instruction);
-                let out = get_outptr(&mut memory, eip + 3, &mut instruction);
-                *out = if opcode == 1 { in1 + in2 } else { in1 * in2 };
-                eip += 4;
-            }
-            3 => {
-                assert!(input_pos < inputs.len());
-                let out = get_outptr(&mut memory, eip + 1, &mut instruction);
-                *out = inputs[input_pos];
-                input_pos += 1;
-                eip += 2;
-            }
-            4 => {
-                let val = get_param_value(&memory, eip + 1, &mut instruction);
-                println!("output: {}", val);
-                eip += 2;
-            }
-            5 | 6 => {
-                let val = get_param_value(&memory, eip + 1, &mut instruction);
-                if (opcode == 5 && val != 0) || (opcode == 6 && val == 0) {
-                    eip = get_param_value(&memory, eip + 2, &mut instruction) as usize;
-                } else {
-                    eip += 3;
-                }
-            }
-            7 | 8 => {
-                let val1 = get_param_value(&memory, eip + 1, &mut instruction);
-                let val2 = get_param_value(&memory, eip + 2, &mut instruction);
-                let out = get_outptr(&mut memory, eip + 3, &mut instruction);
-                if (opcode == 7 && val1 < val2) || (opcode == 8 && val1 == val2) {
-                    *out = 1;
-                } else {
-                    *out = 0;
-                }
-                eip += 4;
-            }
-            99 => break,
-            _ => panic!("unknown opcode {}", opcode),
+impl Intcode {
+    pub fn new(state: &Vec<i32>) -> Self {
+        Self {
+            memory: state.clone(),
+            eip: 0,
+            is_done: false,
         }
     }
 
-    memory[0]
+    fn get_param_val_and_mode(&mut self, instruction: &mut i32) -> (i32, i32) {
+        let v = self.memory[self.eip];
+        self.eip += 1;
+
+        let mode = *instruction % 10;
+        *instruction /= 10;
+
+        (v, mode)
+    }
+
+    fn get_param_value(&mut self, instruction: &mut i32) -> i32 {
+        let (v, mode) = self.get_param_val_and_mode(instruction);
+
+        match mode {
+            // position mode
+            0 => self.memory[v as usize],
+            // immediate mode
+            1 => v,
+            _ => panic!("invalid mode {}", mode),
+        }
+    }
+
+    fn get_outptr<'a>(&'a mut self, instruction: &mut i32) -> &'a mut i32 {
+        let (v, mode) = self.get_param_val_and_mode(instruction);
+
+        match mode {
+            // position mode
+            0 => &mut self.memory[v as usize],
+            _ => panic!("invalid output mode {}", mode),
+        }
+    }
+
+    pub fn run(&mut self, inputs: &[i32]) -> Vec<i32> {
+        let mut input_pos = 0;
+        let mut output = Vec::new();
+
+        loop {
+            let mut instruction = self.memory[self.eip];
+            self.eip += 1;
+
+            let opcode = instruction % 100;
+            instruction /= 100;
+
+            match opcode % 100 {
+                1 => {
+                    let in1 = self.get_param_value(&mut instruction);
+                    let in2 = self.get_param_value(&mut instruction);
+                    let out = self.get_outptr(&mut instruction);
+                    *out = in1 + in2;
+                }
+                2 => {
+                    let in1 = self.get_param_value(&mut instruction);
+                    let in2 = self.get_param_value(&mut instruction);
+                    let out = self.get_outptr(&mut instruction);
+                    *out = in1 * in2;
+                }
+                3 => {
+                    if input_pos >= inputs.len() {
+                        /* rewind eip so that execution can be resumed */
+                        self.eip -= 1;
+                        break;
+                    }
+                    let out = self.get_outptr(&mut instruction);
+                    *out = inputs[input_pos];
+                    input_pos += 1;
+                }
+                4 => {
+                    let val = self.get_param_value(&mut instruction);
+                    output.push(val);
+                }
+                5 => {
+                    let val = self.get_param_value(&mut instruction);
+                    if val != 0 {
+                        self.eip = self.get_param_value(&mut instruction) as usize;
+                    } else {
+                        self.eip += 1;
+                    }
+                }
+                6 => {
+                    let val = self.get_param_value(&mut instruction);
+                    if val == 0 {
+                        self.eip = self.get_param_value(&mut instruction) as usize;
+                    } else {
+                        self.eip += 1;
+                    }
+                }
+                7 => {
+                    let in1 = self.get_param_value(&mut instruction);
+                    let in2 = self.get_param_value(&mut instruction);
+                    let out = self.get_outptr(&mut instruction);
+                    *out = if in1 < in2 { 1 } else { 0 };
+                }
+                8 => {
+                    let in1 = self.get_param_value(&mut instruction);
+                    let in2 = self.get_param_value(&mut instruction);
+                    let out = self.get_outptr(&mut instruction);
+                    *out = if in1 == in2 { 1 } else { 0 };
+                }
+                99 => {
+                    self.is_done = true;
+                    break;
+                }
+                _ => panic!("unknown opcode {}", opcode),
+            }
+        }
+
+        output
+    }
+
+    pub fn is_done(&self) -> bool {
+        self.is_done
+    }
 }
