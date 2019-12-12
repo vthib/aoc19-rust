@@ -11,7 +11,7 @@ fn main() -> Result<()> {
     let mut memory = Vec::new();
 
     for line in input.split(',') {
-        memory.push(line.trim().parse::<i32>()?)
+        memory.push(line.trim().parse::<i64>()?)
     }
 
     day5a(&memory);
@@ -19,7 +19,7 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn day5a(state: &Vec<i32>) {
+fn day5a(state: &Vec<i64>) {
     let mut intcode = Intcode::new(state);
     let output = intcode.run(&[1]);
     for i in 0..(output.len() - 1) {
@@ -28,7 +28,7 @@ fn day5a(state: &Vec<i32>) {
     println!("day5a output: {}", output[output.len() - 1]);
 }
 
-fn day5b(state: &Vec<i32>) {
+fn day5b(state: &Vec<i64>) {
     let mut intcode = Intcode::new(state);
     let output = intcode.run(&[5]);
     println!("day5b output: {:?}", output);

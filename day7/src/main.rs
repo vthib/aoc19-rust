@@ -11,7 +11,7 @@ fn main() -> Result<()> {
 
     let mut memory = Vec::new();
     for line in input.split(',') {
-        memory.push(line.trim().parse::<i32>()?)
+        memory.push(line.trim().parse::<i64>()?)
     }
 
     day7a(&memory);
@@ -19,7 +19,7 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn run_amps(amps: &mut Vec<Intcode>, inputs: &[i32]) -> Vec<i32> {
+fn run_amps(amps: &mut Vec<Intcode>, inputs: &[i64]) -> Vec<i64> {
     assert_eq!(amps.len(), 5);
     let out = amps[0].run(inputs);
     let out = amps[1].run(&out);
@@ -29,7 +29,7 @@ fn run_amps(amps: &mut Vec<Intcode>, inputs: &[i32]) -> Vec<i32> {
     out
 }
 
-fn new_amps(state: &Vec<i32>, phases: &[&i32]) -> Vec<Intcode> {
+fn new_amps(state: &Vec<i64>, phases: &[&i64]) -> Vec<Intcode> {
     let mut amps = vec![Intcode::new(state); 5];
     for i in 0..5 {
         amps[i].run(&[*phases[i]]);
@@ -38,7 +38,7 @@ fn new_amps(state: &Vec<i32>, phases: &[&i32]) -> Vec<Intcode> {
     amps
 }
 
-fn day7a(state: &Vec<i32>) {
+fn day7a(state: &Vec<i64>) {
     let mut max_output = None;
 
     for phases in [0, 1, 2, 3, 4].iter().permutations(5) {
@@ -55,7 +55,7 @@ fn day7a(state: &Vec<i32>) {
     println!("day7a maximum output: {}", max_output.unwrap());
 }
 
-fn day7b(state: &Vec<i32>) {
+fn day7b(state: &Vec<i64>) {
     let mut max_output = None;
 
     for phases in [5, 6, 7, 8, 9].iter().permutations(5) {

@@ -1,12 +1,12 @@
 #[derive(Clone)]
 pub struct Intcode {
-    pub memory: Vec<i32>,
+    pub memory: Vec<i64>,
     eip: usize,
     is_done: bool,
 }
 
 impl Intcode {
-    pub fn new(state: &Vec<i32>) -> Self {
+    pub fn new(state: &Vec<i64>) -> Self {
         Self {
             memory: state.clone(),
             eip: 0,
@@ -14,7 +14,7 @@ impl Intcode {
         }
     }
 
-    fn get_param_val_and_mode(&mut self, instruction: &mut i32) -> (i32, i32) {
+    fn get_param_val_and_mode(&mut self, instruction: &mut i64) -> (i64, i64) {
         let v = self.memory[self.eip];
         self.eip += 1;
 
@@ -24,7 +24,7 @@ impl Intcode {
         (v, mode)
     }
 
-    fn get_param_value(&mut self, instruction: &mut i32) -> i32 {
+    fn get_param_value(&mut self, instruction: &mut i64) -> i64 {
         let (v, mode) = self.get_param_val_and_mode(instruction);
 
         match mode {
@@ -36,7 +36,7 @@ impl Intcode {
         }
     }
 
-    fn get_outptr<'a>(&'a mut self, instruction: &mut i32) -> &'a mut i32 {
+    fn get_outptr<'a>(&'a mut self, instruction: &mut i64) -> &'a mut i64 {
         let (v, mode) = self.get_param_val_and_mode(instruction);
 
         match mode {
@@ -46,7 +46,7 @@ impl Intcode {
         }
     }
 
-    pub fn run(&mut self, inputs: &[i32]) -> Vec<i32> {
+    pub fn run(&mut self, inputs: &[i64]) -> Vec<i64> {
         let mut input_pos = 0;
         let mut output = Vec::new();
 

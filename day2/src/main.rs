@@ -11,7 +11,7 @@ fn main() -> Result<()> {
     let mut memory = Vec::new();
 
     for line in input.split(',') {
-        memory.push(line.trim().parse::<i32>()?)
+        memory.push(line.trim().parse::<i64>()?)
     }
 
     day2a(&memory);
@@ -19,7 +19,7 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn day2a(state: &Vec<i32>) {
+fn day2a(state: &Vec<i64>) {
     let mut memory = state.clone();
     memory[1] = 12;
     memory[2] = 2;
@@ -29,7 +29,7 @@ fn day2a(state: &Vec<i32>) {
     println!("day2a: value at pos 0: {}", intcode.memory[0]);
 }
 
-fn day2b(state: &Vec<i32>) {
+fn day2b(state: &Vec<i64>) {
     for noun in 0..100 {
         for verb in 0..100 {
             let mut memory = state.clone();
