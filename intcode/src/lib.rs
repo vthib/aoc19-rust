@@ -3,6 +3,7 @@ pub struct Intcode {
     pub memory: Vec<i64>,
     eip: usize,
     is_done: bool,
+    rel_base: i64,
 }
 
 impl Intcode {
@@ -11,6 +12,7 @@ impl Intcode {
             memory: state.clone(),
             eip: 0,
             is_done: false,
+            rel_base: 0,
         }
     }
 
@@ -24,14 +26,31 @@ impl Intcode {
         (v, mode)
     }
 
+    fn ensure_memory_available(&mut self, pos: usize) {
+        if pos >= self.memory.len() {
+            self.memory.resize(pos + 1, 0);
+        }
+    }
+
+    fn get_memory_at(&mut self, pos: usize) -> i64 {
+        self.ensure_memory_available(pos);
+        self.memory[pos]
+    }
+
+    fn get_memory_at_mut(&mut self, pos: usize) -> &mut i64 {
+        self.ensure_memory_available(pos);
+        &mut self.memory[pos]
+    }
+    
     fn get_param_value(&mut self, instruction: &mut i64) -> i64 {
         let (v, mode) = self.get_param_val_and_mode(instruction);
 
         match mode {
             // position mode
-            0 => self.memory[v as usize],
+            0 => self.get_memory_at(v as usize),
             // immediate mode
             1 => v,
+            2 => self.get_memory_at((v + self.rel_base) as usize),
             _ => panic!("invalid mode {}", mode),
         }
     }
@@ -41,7 +60,8 @@ impl Intcode {
 
         match mode {
             // position mode
-            0 => &mut self.memory[v as usize],
+            0 => self.get_memory_at_mut(v as usize),
+            2 => self.get_memory_at_mut((v + self.rel_base) as usize),
             _ => panic!("invalid output mode {}", mode),
         }
     }
@@ -111,6 +131,10 @@ impl Intcode {
                     let in2 = self.get_param_value(&mut instruction);
                     let out = self.get_outptr(&mut instruction);
                     *out = if in1 == in2 { 1 } else { 0 };
+                }
+                9 => {
+                    let v = self.get_param_value(&mut instruction);
+                    self.rel_base += v;
                 }
                 99 => {
                     self.is_done = true;
