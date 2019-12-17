@@ -1,0 +1,9 @@
+[package]
+name = "aoc19-rust-day14"
+version = "0.1.0"
+authors = ["vthib"]
+edition = "2018"
+
+[dependencies]
+lazy_static = "1.4"
+regex = "1.3"
